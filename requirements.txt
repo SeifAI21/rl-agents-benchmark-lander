@@ -1,0 +1,8 @@
+torch>=2.0.0
+gymnasium[box2d]>=0.29.0
+numpy>=1.24.0
+matplotlib>=3.7.0
+imageio>=2.31.0
+tensorboard>=2.14.0
+pytest>=7.0.0
+ruff>=0.3.0

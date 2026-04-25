@@ -16,6 +16,7 @@ from __future__ import annotations
 import csv
 import os
 import random
+import warnings
 from dataclasses import dataclass
 from typing import Optional
 
@@ -174,6 +175,7 @@ class RunLogger:
         self.algo = algo
         self.seed = seed
         self.csv_file = csv_path(algo, seed, log_dir)
+        self.tb_enabled = False
 
         # Write the header (overwrites any previous run for this algo+seed).
         with open(self.csv_file, "w", newline="") as f:
@@ -183,12 +185,16 @@ class RunLogger:
         if enable_tb:
             try:
                 from torch.utils.tensorboard import SummaryWriter
-            except ImportError as e:
-                raise ImportError(
-                    "TensorBoard requires the `tensorboard` package. "
-                    "Install: pip install tensorboard"
-                ) from e
+            except Exception as e:
+                warnings.warn(
+                    "TensorBoard logging disabled because torch.utils.tensorboard "
+                    f"could not initialize: {e}",
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+                return
             self._writer = SummaryWriter(log_dir=tb_dir(algo, seed, tb_root))
+            self.tb_enabled = True
 
     def log_episode(
         self,
