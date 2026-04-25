@@ -94,7 +94,16 @@ def cmd_play(args: argparse.Namespace) -> int:
         deterministic=not args.stochastic,
         device=args.device,
     )
-    adapter.load(args.checkpoint)
+    try:
+        adapter.load(args.checkpoint)
+    except FileNotFoundError as exc:
+        print(str(exc), file=sys.stderr)
+        print(
+            "Tip: train that agent first, then pass the real checkpoint path "
+            "(e.g. results/dqn/model.pth or results/models/reinforce_policy.pth).",
+            file=sys.stderr,
+        )
+        return 1
     print(f"Loaded {args.algo} checkpoint: {Path(args.checkpoint).resolve()}")
 
     seed = args.seed
@@ -162,7 +171,15 @@ def cmd_eval(args: argparse.Namespace) -> int:
         deterministic=not args.stochastic,
         device=args.device,
     )
-    adapter.load(args.checkpoint)
+    try:
+        adapter.load(args.checkpoint)
+    except FileNotFoundError as exc:
+        print(str(exc), file=sys.stderr)
+        print(
+            "Tip: train that agent first, then pass the real checkpoint path.",
+            file=sys.stderr,
+        )
+        return 1
     stats = evaluate_greedy(
         adapter,
         env_id=args.env_id,
