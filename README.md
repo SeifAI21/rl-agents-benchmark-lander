@@ -29,6 +29,9 @@ Artifacts:
 - Plots: `results/plots/`
 - Gameplay demos: `results/gifs/`
 
+> Note: all images/GIFs are loaded from the local `results/` folder.
+> If they are not committed and pushed, GitHub will not display them in this README.
+
 ## Gameplay Demos
 
 ### DQN
@@ -48,6 +51,11 @@ Artifacts:
 ![Comparison rewards](results/plots/comparison_rewards.png)
 ![Final performance](results/plots/final_performance.png)
 
+Curve files used above:
+
+- `results/plots/comparison_rewards.png`
+- `results/plots/final_performance.png`
+
 ## Reproduce
 
 ```bash
@@ -61,6 +69,12 @@ python -m evaluation report
 python -m evaluation play --algo dqn --checkpoint results/dqn/model.pth --gif results/gifs/dqn_demo.gif --demo-trials 16
 python -m evaluation play --algo reinforce --checkpoint results/models/reinforce_policy.pth --gif results/gifs/reinforce_demo.gif --demo-trials 16
 python -m evaluation play --algo a2c --checkpoint results/models/a2c_actor.pth --hidden 256 --gif results/gifs/a2c_demo.gif --demo-trials 16
+
+# If assets are gitignored, force-add and push so README media appears on GitHub
+git add -f results/plots/comparison_rewards.png results/plots/final_performance.png
+git add -f results/gifs/dqn_demo.gif results/gifs/reinforce_demo.gif results/gifs/a2c_demo.gif
+git commit -m "Add report media assets"
+git push origin main
 ```
 
 ## Project Structure
