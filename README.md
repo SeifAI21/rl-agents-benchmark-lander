@@ -29,9 +29,6 @@ Artifacts:
 - Plots: `results/plots/`
 - Gameplay demos: `results/gifs/`
 
-> Note: all images/GIFs are loaded from the local `results/` folder.
-> If they are not committed and pushed, GitHub will not display them in this README.
-
 ## Gameplay Demos
 
 ### DQN
