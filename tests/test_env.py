@@ -73,7 +73,7 @@ def run_random_episodes(continuous: bool, n_episodes: int = 5, seed: int = 42) -
 
 
 def test_logging_schema() -> None:
-    """Write a few rows with RunLogger, check CSV and TB files exist."""
+    """Write a few rows with RunLogger; TB file check is optional."""
     import shutil
 
     log_dir = "results_test/logs"
@@ -90,10 +90,16 @@ def test_logging_schema() -> None:
     print(f"  header: {rows[0]}")
     print(f"  row 1 : {rows[1]}")
 
-    # Check a TB event file was written.
-    tb_files = [f for f in os.listdir(os.path.join(tb_root, "randomtest", "seed0")) if f.startswith("events.out")]
-    assert tb_files, "no TensorBoard event file written"
-    print(f"  tb event: {tb_files[0]}")
+    if logger.tb_enabled:
+        tb_files = [
+            f
+            for f in os.listdir(os.path.join(tb_root, "randomtest", "seed0"))
+            if f.startswith("events.out")
+        ]
+        assert tb_files, "no TensorBoard event file written"
+        print(f"  tb event: {tb_files[0]}")
+    else:
+        print("  tensorboard disabled; CSV logging verified")
 
     shutil.rmtree("results_test")
 

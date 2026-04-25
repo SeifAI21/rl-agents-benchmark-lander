@@ -8,15 +8,14 @@ This repo contains:
 
 ## Current branch status (`evaluation-visualization`)
 
-- DQN artifacts: real `seed42` model/log generated
+- DQN artifacts: real `seed42` model/log integrated
 - REINFORCE artifacts: real `seed42` model/log integrated
-- A2C artifacts: pending teammate handoff (model + logs)
+- A2C artifacts: real actor/critic checkpoints + real `seed42` log integrated
 
-Until A2C arrives, report outputs are partially real:
+Current comparison is fully real for the shared seed set used in this branch:
 
-- DQN: mixed (real seed42 + synthetic other seeds)
-- REINFORCE: mixed (real seed42 + synthetic other seeds)
-- A2C: currently synthetic placeholders
+- Seed set: `[42]` for all algorithms
+- Episode count: `1000` for all algorithms
 
 ## Main docs
 
@@ -37,6 +36,11 @@ python -m evaluation report
 
 # Watch a trained policy play
 python -m evaluation play --algo dqn --checkpoint results/dqn/model.pth --watch
+
+# Optional gameplay GIFs for all agents
+python -m evaluation play --algo dqn --checkpoint results/dqn/model.pth --gif results/gifs/dqn_demo.gif --demo-trials 16
+python -m evaluation play --algo reinforce --checkpoint results/models/reinforce_policy.pth --gif results/gifs/reinforce_demo.gif --demo-trials 16
+python -m evaluation play --algo a2c --checkpoint results/models/a2c_actor.pth --hidden 256 --gif results/gifs/a2c_demo.gif --demo-trials 16
 ```
 
 ## Fairness rules (for final report)

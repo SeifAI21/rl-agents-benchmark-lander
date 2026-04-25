@@ -13,10 +13,12 @@ and the saved checkpoints from DQN / REINFORCE / A2C, then produces:
 
 - DQN: real `seed42` checkpoint/log integrated
 - REINFORCE: real `seed42` checkpoint/log integrated
-- A2C: pending teammate artifacts (`a2c_actor.pth` + `a2c_seed*.csv`)
+- A2C: real actor/critic checkpoints and real `seed42` log integrated
 
-The report still runs end-to-end now, but final conclusions should be frozen
-only after full real artifacts are available for all seeds and all algorithms.
+Current report is generated on a fair aligned set:
+
+- shared seed set: `[42]` for all algorithms
+- shared episode budget: `1000` episodes for all algorithms
 
 ## Data contract (do not change without team agreement)
 
@@ -138,6 +140,7 @@ Expected destination paths:
 - REINFORCE model: `results/models/reinforce_policy.pth`
 - REINFORCE logs: `results/logs/reinforce_seed{seed}.csv`
 - A2C model: `results/models/a2c_actor.pth`
+- A2C critic: `results/models/a2c_critic.pth`
 - A2C logs: `results/logs/a2c_seed{seed}.csv`
 
 ## What the report measures

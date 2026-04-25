@@ -9,8 +9,8 @@ The shapes here mirror the architectures in the teammates' branches:
 
 - `dqn`        : 3-layer MLP, hidden=64, output=Q(s, .)            (DQN-Implementation)
 - `reinforce`  : 2-hidden-layer MLP, hidden=128, output=logits(.)  (reinforce)
-- `a2c`        : same as `reinforce` for the actor head; a value head is
-                 loaded if present in the checkpoint                (placeholder)
+- `a2c`        : actor MLP with hidden=256 under `net.*` keys
+                 (`actor_best.pth`), separate critic checkpoint
 
 If a teammate ships a different architecture, register a new adapter via
 `AGENT_REGISTRY[name] = MyAdapter` (see `make_adapter`).
@@ -67,15 +67,15 @@ class ReinforcePolicyNet(nn.Module):
 
 
 class A2CActorNet(nn.Module):
-    """Placeholder A2C actor head — same MLP as REINFORCE.
+    """Matches the shipped A2C actor checkpoint (`actor_best.pth`).
 
-    If the A2C teammate uses a different layout, register a custom adapter
-    instead of editing this class so we don't break REINFORCE compatibility.
+    Checkpoint keys are `net.0.weight`, `net.0.bias`, ... so we keep the
+    attribute name as `net` for strict `load_state_dict` compatibility.
     """
 
-    def __init__(self, state_dim: int = 8, action_dim: int = 4, hidden_dim: int = 128):
+    def __init__(self, state_dim: int = 8, action_dim: int = 4, hidden_dim: int = 256):
         super().__init__()
-        self.network = nn.Sequential(
+        self.net = nn.Sequential(
             nn.Linear(state_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim),
@@ -84,7 +84,7 @@ class A2CActorNet(nn.Module):
         )
 
     def forward(self, state: torch.Tensor) -> torch.Tensor:
-        return self.network(state)
+        return self.net(state)
 
 
 # ---------------------------------------------------------------------------
@@ -132,7 +132,14 @@ class BaseAdapter:
             state = torch.load(path, map_location=self.device)
         # Accept full save dicts that wrap the model under common keys.
         if isinstance(state, dict):
-            for key in ("model", "policy", "q_network", "actor", "state_dict"):
+            for key in (
+                "model",
+                "policy",
+                "q_network",
+                "actor",
+                "actor_state_dict",
+                "state_dict",
+            ):
                 if key in state and isinstance(state[key], dict):
                     state = state[key]
                     break
@@ -180,7 +187,7 @@ class ReinforceAdapter(BaseAdapter):
 
 class A2CAdapter(BaseAdapter):
     name = "a2c"
-    default_hidden = 128
+    default_hidden = 256
     is_stochastic = True
 
     def _build_network(self, state_dim: int, action_dim: int, hidden: int) -> nn.Module:
