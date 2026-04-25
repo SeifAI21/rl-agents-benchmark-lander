@@ -20,10 +20,26 @@ class ActorNetwork(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return F.softmax(self.net(x), dim=-1)
+        logits = self.net(x)
+        # Check for NaN/Inf in logits
+        if torch.isnan(logits).any() or torch.isinf(logits).any():
+            print("[WARNING] NaN/Inf detected in actor logits!")
+            logits = torch.where(torch.isnan(logits) | torch.isinf(logits), 
+                                torch.zeros_like(logits), logits)
+        # Stable softmax with temperature scaling
+        probs = F.softmax(logits / 1.0, dim=-1)
+        # Clamp probabilities to avoid exact zeros and NaNs
+        probs = torch.clamp(probs, min=1e-8, max=1.0 - 1e-8)
+        # Normalize to ensure valid probability distribution
+        probs = probs / (probs.sum(dim=-1, keepdim=True) + 1e-8)
+        return probs
 
     def get_distribution(self, state: torch.Tensor) -> Categorical:
         probs = self.forward(state)
+        # Additional NaN check before creating distribution
+        if torch.isnan(probs).any():
+            print("[WARNING] NaN detected in actor probabilities!")
+            probs = torch.ones_like(probs) / probs.shape[-1]
         return Categorical(probs)
 
 

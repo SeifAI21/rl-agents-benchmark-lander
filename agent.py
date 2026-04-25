@@ -73,9 +73,24 @@ class A2CAgent:
         returns_t = torch.FloatTensor(returns).to(self.device)
         log_probs_t = torch.stack(log_probs).to(self.device)
 
+        # Detect NaNs in inputs
+        if torch.isnan(returns_t).any():
+            print("[ERROR] NaN detected in returns!")
+            return float('nan'), float('nan'), float('nan')
+        if torch.isnan(log_probs_t).any():
+            print("[ERROR] NaN detected in log_probs!")
+            return float('nan'), float('nan'), float('nan')
+
         values = self.critic(states_t)
         advantages = (returns_t - values).detach()
-        advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
+        
+        # Safe advantage normalization
+        adv_mean = advantages.mean()
+        adv_std = advantages.std()
+        if adv_std > 1e-4:  # Only normalize if std is significant
+            advantages = (advantages - adv_mean) / (adv_std + 1e-8)
+        else:  # Just center if std is too small
+            advantages = advantages - adv_mean
 
         critic_loss = F.mse_loss(values, returns_t)
         self.critic_optimizer.zero_grad()
@@ -86,6 +101,14 @@ class A2CAgent:
         dist = self.actor.get_distribution(states_t)
         entropy = dist.entropy().mean()
         actor_loss = -(log_probs_t * advantages).mean() - self.entropy_coef * entropy
+
+        # Detect NaNs in losses
+        if torch.isnan(actor_loss) or torch.isnan(critic_loss):
+            print("[ERROR] NaN detected in losses!")
+            print(f"  Actor loss: {actor_loss}")
+            print(f"  Critic loss: {critic_loss}")
+            print(f"  Advantages min/max/mean/std: {advantages.min()}/{advantages.max()}/{advantages.mean()}/{advantages.std()}")
+            return float('nan'), float('nan'), float('nan')
 
         self.actor_optimizer.zero_grad()
         actor_loss.backward()
